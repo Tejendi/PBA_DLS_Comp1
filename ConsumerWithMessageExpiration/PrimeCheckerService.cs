@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PrimeCheckerComponent.Services
+namespace Consumer
 {
     public struct PrimeCheckerService
     {
