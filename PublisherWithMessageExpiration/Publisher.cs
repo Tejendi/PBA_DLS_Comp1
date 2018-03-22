@@ -10,16 +10,16 @@ namespace Publisher
     {
         static void Main(string[] args)
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
-            using (var connection = factory.CreateConnection())
-            using (var channel = connection.CreateModel())
+            ConnectionFactory factory = new ConnectionFactory() { HostName = "localhost" };
+            using (IConnection connection = factory.CreateConnection())
+            using (IModel channel = connection.CreateModel())
             {
                 channel.QueueDeclare(queue: "task_queue", durable: true, exclusive: false, autoDelete: false, arguments: null);
 
-                var properties = channel.CreateBasicProperties();
+                IBasicProperties properties = channel.CreateBasicProperties();
                 properties.Persistent = true;
 
-                var stopwatch = new Stopwatch();
+                Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
                 while (stopwatch.Elapsed < TimeSpan.FromMinutes(10))
@@ -58,7 +58,7 @@ namespace Publisher
         {
             if (obj == null)
                 return null;
-            var bf = new BinaryFormatter();
+            BinaryFormatter bf = new BinaryFormatter();
             using (MemoryStream ms = new MemoryStream())
             {
                 bf.Serialize(ms, obj);
