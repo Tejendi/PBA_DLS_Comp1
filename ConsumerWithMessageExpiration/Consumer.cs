@@ -20,19 +20,22 @@ namespace Consumer
 
             FileStream logFile = File.Create(logPath + consumerInstance + ".txt");
 
+            // Initialization of the connection to local RabbitMQ server.
             ConnectionFactory factory = new ConnectionFactory() { HostName = "localhost" };
 
             using (StreamWriter logWriter = new StreamWriter(logFile))
             using (IConnection connection = factory.CreateConnection())
             using (IModel channel = connection.CreateModel())
             {
+                // Connects to a queue in RabbitMQ named "task_queue",.
                 channel.QueueDeclare(queue: "task_queue", durable: true, exclusive: false, autoDelete: false, arguments: null);
+                // Configures the subscription queue for the current consumer instance.
                 channel.BasicQos(prefetchSize: 0, prefetchCount: 20, global: false);
 
                 Console.WriteLine($"{consumerInstance}: Waiting for messages.");
                 logWriter.WriteLine($"{consumerInstance}: Log file created at: {logPath}");
                 logWriter.WriteLine($"{consumerInstance}: Waiting for messages.");
-
+                // Defined the handler which holds the event triggering when receiving the message from the queue.
                 EventingBasicConsumer consumer = new EventingBasicConsumer(channel);
                 consumer.Received += (model, ea) =>
                 {
@@ -49,13 +52,13 @@ namespace Consumer
                     Console.WriteLine($"{consumerInstance}: Result from {message}: {primes}, finished at {DateTime.Now}");
                     logWriter.WriteLine($"{consumerInstance}: Result from {message}: {primes}, finished at {DateTime.Now}");
 
+                    // Tells RabbitMQ that this message has been recieved, so it won't be re-issued.
                     channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                 };
 
+                // Registers the consumer.
                 channel.BasicConsume(queue: "task_queue", consumer: consumer);
-
-
-
+                
                 Console.WriteLine(" Press [enter] to exit.");
                 Console.ReadLine();
             }
